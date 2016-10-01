@@ -1,4 +1,4 @@
-#findevilproc
+# findevilproc
 __author__ = "Tyler Halfpop"
 __version__ = "0.1"
 __license__ = "MIT"
@@ -15,7 +15,7 @@ import volatility.plugins.taskmods as taskmods
 import findevilinfo
 
 class findEvilProc(procdump.ProcDump):
-    """Find potential known evil processes
+    """ Find potential known bad processes
     """
 
     def __init__(self, config, *args, **kwargs):
@@ -28,20 +28,24 @@ class findEvilProc(procdump.ProcDump):
             print "Dump Dir Already Exists {}".format(str(self._config.DUMP_DIR))
 
     def render_text(self, outfd, data):
-        """ Dump processes and check for known evil
+        """ Dump processes and check for known bad
         https://github.com/volatilityfoundation/volatility/blob/master/volatility/plugins/procdump.py
         """
+
+        # Compile Yara Rules if configured
+        if findevilinfo.YARA_RULES_DIR != "INSERT_YARA_RULES_DIR_HERE":
+            ys = findevilinfo.YaraClass()
+        
+         # render_text from procdump
         self.table_header(outfd,
                           [("Name", "20"),
                            ("Result", "25"),
+                           ("Hash", "64"),
                            ("Verdict", "10"),
                            ("Signed", "8"),
                            ("Entropy", "12"),
                            ("Yara", ""),])
-
-        if findevilinfo.YARA_RULES_DIR != "INSERT_YARA_RULES_DIR_HERE":
-            ys = findevilinfo.YaraClass()
-
+        
         for task in data:
             task_space = task.get_process_address_space()
             if task_space == None:
@@ -57,6 +61,8 @@ class findEvilProc(procdump.ProcDump):
                 result = self.dump_pe(task_space,
                                 task.Peb.ImageBaseAddress,
                                 dump_file)
+                
+                # Full path of dumped file, get hash, VT, signed, entropy, yara
                 dumped_file = "{}{}{}".format(self._config.DUMP_DIR, os.sep, dump_file)
                 
                 file_hash = findevilinfo.get_hash(dumped_file)
@@ -76,6 +82,7 @@ class findEvilProc(procdump.ProcDump):
                 self.table_row(outfd,
                             task.ImageFileName,
                             result,
+                            file_hash,
                             verdict,
                             signed,
                             entropy,
