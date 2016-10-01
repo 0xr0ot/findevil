@@ -2,6 +2,8 @@
 Volatility plugin to find known bad in processes or memory
 
 ## Config
+Copy findevilinfo.py, findevilmem.py, and findevilproc.py to volatility/plugins/ directory or specify the directory using --plugins command line argument.
+
 Insert your VirusTotal API Key and Yara rules folder into findevilinfo.py
 
 You can find your VirusTotal API Key here:
