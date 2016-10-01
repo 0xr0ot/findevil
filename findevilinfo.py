@@ -35,6 +35,8 @@ def get_VT_verdict(file_hash):
         response_dict = json.loads(json_object)
         verdict = "{} / {}".format(response_dict.get("positives", {}),
                              response_dict.get("total", {}))
+        if verdict == "{} / {}":
+            return "Not in VT"
         return verdict
     except Exception as e:
         print "Exception: {}".format(e)
